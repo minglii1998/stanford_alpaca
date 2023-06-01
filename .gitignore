@@ -130,3 +130,10 @@ dmypy.json
 
 .DS_Store
 .idea
+
+scripts
+data*
+trained_models
+workspace
+logs
+

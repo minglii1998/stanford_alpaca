@@ -183,12 +183,12 @@ def train():
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
-    model = transformers.AutoModelForCausalLM.from_pretrained(
+    model = transformers.LlamaForCausalLM.from_pretrained(
         model_args.model_name_or_path,
         cache_dir=training_args.cache_dir,
     )
 
-    tokenizer = transformers.AutoTokenizer.from_pretrained(
+    tokenizer = transformers.LlamaTokenizer.from_pretrained(
         model_args.model_name_or_path,
         cache_dir=training_args.cache_dir,
         model_max_length=training_args.model_max_length,
