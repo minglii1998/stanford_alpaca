@@ -102,7 +102,6 @@ def evaluate_raw(
     **kwargs,
 ):
     prompt = generate_prompt(instruction, input)
-    # prompt = instruction
     inputs = tokenizer(prompt, return_tensors="pt")
     input_ids = inputs["input_ids"].to(device)
     with torch.no_grad():
@@ -117,21 +116,46 @@ def evaluate_raw(
 
 if __name__ == "__main__":
 
-    par_list = \
-    [["",""],
-     ["",""],
-     ["",""],
-     ["",""],
-     ["",""],
-     ["",""]]
+    import time
+    import json
+    file_lima = 'data/lima_datas/lima_test_data.json'
+    with open(file_lima, "r") as f:
+        data_lima = json.load(f)
+    
+    trained_check_path = args.trained_check_path
+    model_name = trained_check_path.split('/')[-2]
+    check_point_name = trained_check_path.split('/')[-1]
 
-    print(args.trained_check_path)
-    for par in par_list:
-        print('=========================')
-        print(par)
-        instruction = par[0]
-        input_ = par[1]
-        response = evaluate_raw(instruction,input_)
+    save_name = 'lima_test_set'
+    save_dir = os.path.join('logs',save_name,model_name,check_point_name)
+    os.makedirs(save_dir,exist_ok=True)
+    save_file = os.path.join(save_dir,'result.json')
+
+    start_time = time.time()
+    new_data = []
+    for i,data_i in enumerate(data_lima):
+        instruction_i = data_i['instruction']
+
+        response = evaluate_raw(instruction_i)
+        response = response.split('### Response:')[-1]
+
+        new_sample = {}
+        new_sample['instruction'] = instruction_i
+        new_sample['response'] = response
+        new_data.append(new_sample)
+
         print("Response:")
         print(response)
         print()
+
+        with open('temp_see.txt','a') as f:
+            f.write('==========\n')
+            f.write(instruction_i+'\n')
+            f.write('====\n')
+            f.write(response+'\n')
+            f.write('==========\n')
+
+    print('Time used:',(time.time()-start_time)/60,(min))
+    print('New data len \n',len(new_data))
+    with open(save_file, "w") as fw:
+        json.dump(new_data, fw, indent=4)

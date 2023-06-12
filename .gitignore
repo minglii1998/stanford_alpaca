@@ -133,7 +133,7 @@ dmypy.json
 
 scripts
 data*
-trained_models
+trained_models*
 workspace
 logs
 

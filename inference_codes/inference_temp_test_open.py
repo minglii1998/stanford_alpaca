@@ -1,6 +1,7 @@
 import os
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import sys
+import time
 import torch
 import transformers
 import argparse
@@ -116,22 +117,48 @@ def evaluate_raw(
 
 
 if __name__ == "__main__":
+    import json
+    import re
 
-    par_list = \
-    [["",""],
-     ["",""],
-     ["",""],
-     ["",""],
-     ["",""],
-     ["",""]]
+    file_path = 'data/alpaca_data_selected/alpaca_data_specific_open.json'
+    save_path = 'test_specific_open.json'
+    print('file_path: ',file_path)
+    print('save_path: ',save_path)
 
-    print(args.trained_check_path)
-    for par in par_list:
-        print('=========================')
-        print(par)
-        instruction = par[0]
-        input_ = par[1]
+    with open(file_path, "r") as f:
+        data = json.load(f)
+
+    start_time = time.time()
+    new_data = []
+    for i,sample_i in enumerate(data):
+        print('==================/n',i,'/',len(data))
+        temp_sample = {}
+
+        instruction = sample_i['instruction']
+        input_ = sample_i['input']
         response = evaluate_raw(instruction,input_)
+        response = response.split('### Response:')[1].strip()
+
+        print('Instruction:',sample_i['instruction'])
+        print('Input:',sample_i['input'])
+        print("GT:")
+        print(sample_i['output'])
         print("Response:")
         print(response)
-        print()
+
+        temp_sample['instruction'] = sample_i['instruction']
+        temp_sample['input'] = sample_i['input']
+        temp_sample['output'] = sample_i['output']
+        temp_sample['response'] = response
+        new_data.append(temp_sample)
+
+    print('New data len \n',len(new_data))
+    print('Time Used:',(time.time()-start_time)/60,'(min)')
+
+    with open(save_path, "w") as fw:
+        json.dump(new_data, fw, indent=4)
+
+
+
+
+

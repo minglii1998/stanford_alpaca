@@ -116,22 +116,45 @@ def evaluate_raw(
 
 
 if __name__ == "__main__":
+    import json
+    import re
 
-    par_list = \
-    [["",""],
-     ["",""],
-     ["",""],
-     ["",""],
-     ["",""],
-     ["",""]]
+    file_path = 'data/generated_test_data/generated_sort_descend_data_200.json'
+    print(file_path)
+    with open(file_path, "r") as f:
+        data = json.load(f)
 
-    print(args.trained_check_path)
-    for par in par_list:
-        print('=========================')
-        print(par)
-        instruction = par[0]
-        input_ = par[1]
+    correct_count = 0
+    for i,sample_i in enumerate(data):
+        print('==================/n',i,'/',len(data))
+
+        instruction = sample_i['instruction']
+        input_ = sample_i['input']
         response = evaluate_raw(instruction,input_)
+        response = response.split('### Response:')[1].strip()
+
+        print('Instruction:',sample_i['instruction'])
+        print('Input:',sample_i['input'])
+        print("GT:")
+        print(sample_i['output'])
         print("Response:")
         print(response)
-        print()
+
+        output_i = response.lower()
+        numbers_response = re.findall(r'-?\d+\.?\d*',output_i)
+
+        output_i = sample_i['output'].lower()
+        numbers_gt = re.findall(r'-?\d+\.?\d*',output_i)
+
+        if len(numbers_response) == 0:
+            print("False")
+        elif len(numbers_response) != len(numbers_gt):
+            print("False")
+        else:
+            if numbers_response == numbers_gt:
+                correct_count += 1
+                print("True")
+            else:
+                print("False")
+
+    print('Final Acc:', correct_count/len(data))
