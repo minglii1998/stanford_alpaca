@@ -10,6 +10,7 @@ from transformers import (
 parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('--model_type', default="llama", choices=['llama', 'chatglm', 'bloom'])
 parser.add_argument('--trained_check_path', default="out_try", type=str)
+parser.add_argument('--max_new_tokens', default=512, type=int)
 args = parser.parse_args()
 
 
@@ -123,8 +124,12 @@ if __name__ == "__main__":
         data_lima = json.load(f)
     
     trained_check_path = args.trained_check_path
-    model_name = trained_check_path.split('/')[-2]
-    check_point_name = trained_check_path.split('/')[-1]
+    if 'checkpoint' in trained_check_path.split('/')[-1]:
+        check_point_name = trained_check_path.split('/')[-1]
+        model_name = trained_check_path.split('/')[-2]
+    else:
+        check_point_name = 'final'
+        model_name = trained_check_path.split('/')[-1]        
 
     save_name = 'lima_test_set'
     save_dir = os.path.join('logs',save_name,model_name,check_point_name)
@@ -136,7 +141,7 @@ if __name__ == "__main__":
     for i,data_i in enumerate(data_lima):
         instruction_i = data_i['instruction']
 
-        response = evaluate_raw(instruction_i)
+        response = evaluate_raw(instruction_i,max_new_tokens=args.max_new_tokens)
         response = response.split('### Response:')[-1]
 
         new_sample = {}
@@ -147,13 +152,6 @@ if __name__ == "__main__":
         print("Response:")
         print(response)
         print()
-
-        with open('temp_see.txt','a') as f:
-            f.write('==========\n')
-            f.write(instruction_i+'\n')
-            f.write('====\n')
-            f.write(response+'\n')
-            f.write('==========\n')
 
     print('Time used:',(time.time()-start_time)/60,(min))
     print('New data len \n',len(new_data))
